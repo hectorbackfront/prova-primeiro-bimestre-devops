@@ -123,4 +123,78 @@ salva em `evidencias/compose-ps.txt`. Ambiente de teste derrubado depois com
 
 ---
 
+## Prompt 4 — Terraform Modules (VPC, SG, EC2, RDS)
+
+**Fase:** Parte 4 do enunciado (Infraestrutura AWS)
+**Ferramenta:** Claude (Sonnet 5, via Claude Code)
+
+**Prompt usado:**
+```
+Gera Terraform modularizado pra AWS Academy Learner Lab:
+
+Estrutura:
+- modules/vpc/ → VPC com 2 subnets públicas + 2 privadas (2 AZs, us-east-1)
+- modules/security-group/ → SG pra EC2 (22, 3000) + SG pra RDS (5432 apenas do EC2 SG)
+- modules/ec2/ → EC2 t2.micro na subnet pública, instance profile LabInstanceProfile
+- modules/rds/ → PostgreSQL db.t3.micro nas subnets privadas, publicly_accessible=false, storage_encrypted=true
+
+Requisitos:
+- Usar LabRole / LabInstanceProfile (NÃO criar IAM próprio)
+- Region us-east-1
+- Outputs úteis: IP da EC2, endpoint RDS, URL da API
+- Tags em todos os recursos
+- Sem hardcode (variáveis)
+
+main.tf compõe os modules. Gera também variables.tf, outputs.tf, providers.tf.
+
+Contexto: AWS Academy Learner Lab, credenciais temporárias via CLI, precisa de remote state depois.
+```
+
+**Resultado:** Gerados os 4 módulos em `infra/modules/` + `infra/main.tf`,
+`variables.tf`, `outputs.tf`, `providers.tf` (backend S3 comentado, ativado
+só depois de existir). O módulo `ec2` inclui um `user_data.sh.tpl` que
+instala Docker via `dnf`, clona o repositório da API e sobe o container já
+apontando pro RDS (endpoint vem do output do módulo `rds`, alimentando o
+input do módulo `ec2` — composição real entre módulos). Não usa IAM próprio,
+só referencia `LabInstanceProfile` pelo nome. `terraform fmt -recursive` e
+`terraform validate` rodaram sem erro (validado sem precisar de credenciais
+AWS). `terraform plan`/`apply` ainda pendentes — dependem de sessão ativa no
+AWS Academy Learner Lab (credenciais temporárias expiram em poucas horas).
+
+---
+
+## Prompt 5 — Remote State (S3 + DynamoDB)
+
+**Fase:** Parte 4 do enunciado (Remote State)
+**Ferramenta:** Claude (Sonnet 5, via Claude Code)
+
+**Prompt usado:**
+```
+Gera os configs de Remote State pra Terraform:
+
+1. Script/código pra criar:
+   - S3 bucket (versionamento ON, encriptação ON, não public)
+   - DynamoDB table pra locking (1 RCU/WCU)
+
+2. Backend config pra terraform (backend "s3" no providers.tf):
+   - bucket = "seu-bucket"
+   - key = "terraform.tfstate"
+   - region = "us-east-1"
+   - dynamodb_table = "terraform-lock"
+   - encrypt = true
+
+Contexto: AWS Academy Learner Lab, precisa ser criado manualmente com credenciais antes de usar no projeto.
+```
+
+**Resultado:** Gerado `infra/backend/` como config Terraform separada (state
+local de propósito, já que ela cria a própria infra de state remoto): bucket
+S3 com versionamento, criptografia SSE-AES256 e bloqueio de acesso público,
+mais tabela DynamoDB (`PROVISIONED`, 1 RCU/1 WCU, chave `LockID`). O bloco
+`backend "s3"` já está pronto (comentado) em `infra/providers.tf`, faltando
+só preencher o nome do bucket depois do `apply` do bootstrap.
+`terraform validate` passou sem erro. Ainda não aplicado (mesma pendência de
+credenciais do Prompt 4).
+
+---
+
 <!-- Próximos prompts entram abaixo, na ordem em que forem usados -->

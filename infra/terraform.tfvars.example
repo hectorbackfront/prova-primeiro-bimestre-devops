@@ -1,0 +1,8 @@
+aws_region   = "us-east-1"
+project_name = "reservas"
+azs          = ["us-east-1a", "us-east-1b"]
+repo_url     = "https://github.com/hectorbackfront/prova-primeiro-bimestre-devops.git"
+
+db_name     = "reservas"
+db_username = "postgres"
+db_password = "TROQUE-ESSA-SENHA"
