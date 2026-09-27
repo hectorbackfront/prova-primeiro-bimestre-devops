@@ -23,4 +23,5 @@ docker run -d \
   -e DB_USER=${db_user} \
   -e DB_PASS=${db_password} \
   -e DB_NAME=${db_name} \
+  -e DB_SSL=true \
   reservas-api
