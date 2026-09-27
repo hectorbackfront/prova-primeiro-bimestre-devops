@@ -81,4 +81,46 @@ projeto final, só validaram a Fase 3 antes do Docker Compose oficial.
 
 ---
 
+## Prompt 3 — Docker Compose (API + PostgreSQL)
+
+**Fase:** Parte 3 do enunciado (Docker Compose)
+**Ferramenta:** Claude (Sonnet 5, via Claude Code)
+
+**Prompt usado:**
+```
+Gera docker-compose.yml pra subir:
+- Serviço API (imagem da prova-primeiro-bimestre-devops, porta 3000)
+- Serviço PostgreSQL (imagem postgres:15-alpine, porta 5432)
+- Volume nomeado pra persistência do DB
+- Rede bridge customizada
+- Healthcheck no PostgreSQL
+- depends_on com condição de healthcheck
+- Variáveis de env (DB_HOST=postgres, etc)
+
+Requisitos:
+- .env.example versionado (sem senhas)
+- .env no .gitignore
+- `docker compose up` sobe tudo em um comando
+- PostgreSQL é chamado 'postgres' internamente
+```
+
+**Resultado:** Gerado `docker-compose.yml` na raiz (serviço `api` faz build de
+`./app`, serviço `postgres` com `postgres:15-alpine`, volume nomeado
+`reservas-db-data`, rede bridge `reservas-net`, healthcheck via `pg_isready`,
+`depends_on: condition: service_healthy`) e `.env.example` na raiz
+(`DB_USER`, `DB_PASS`, `DB_NAME`). Ao testar com `docker compose up`, a IA
+gerou inicialmente `ports: "5432:5432"` pro Postgres, que **conflitou** com o
+PostgreSQL do sistema operacional já rodando na porta 5432 do host — a IA não
+tinha como saber disso. Corrigi manualmente pra `"5433:5432"` (só a porta
+externa/host muda; internamente, entre os containers, continua 5432, que é o
+que o enunciado pede e o que a API usa via `DB_HOST=postgres`). Depois disso,
+`docker compose up -d` subiu os dois serviços com um comando só, o Postgres
+ficou `healthy` antes da API iniciar (confirmando o `depends_on` condicional),
+e testei o CRUD via `curl` (`/health`, `POST /reservas`, `GET /reservas`) —
+tudo funcionando com os dados persistidos no Postgres do Compose. Evidência
+salva em `evidencias/compose-ps.txt`. Ambiente de teste derrubado depois com
+`docker compose down`.
+
+---
+
 <!-- Próximos prompts entram abaixo, na ordem em que forem usados -->
