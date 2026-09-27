@@ -1,0 +1,13 @@
+=== Infraestrutura AWS (terraform apply) ===
+ec2_public_ip = 13.220.223.155
+rds_endpoint  = reservas-db.c0nku9luxy40.us-east-1.rds.amazonaws.com:5432
+api_url       = http://13.220.223.155:3000
+
+=== curl /health ===
+{"status":"ok"} [HTTP 200]
+
+=== curl POST /reservas ===
+{"id":2,"cliente":"Evidencia Final","data":"2027-01-10T00:00:00.000Z","status":"pendente"} [HTTP 201]
+
+=== curl GET /reservas (dado persistido no RDS) ===
+[{"id":2,"cliente":"Evidencia Final","data":"2027-01-10T00:00:00.000Z","status":"pendente"}] [HTTP 200]

@@ -197,4 +197,25 @@ credenciais do Prompt 4).
 
 ---
 
+## Problema encontrado em produção (não gerado por prompt, achado testando)
+
+Depois do `terraform apply` bem-sucedido (17 recursos criados), a API na EC2
+ficava em **loop de restart** (`docker logs` mostrava
+`no pg_hba.conf entry for host ..., no encryption`). Diagnostiquei via
+`aws ssm send-command` (sem SSH configurado na instância) rodando
+`docker logs` remotamente. Causa: o **RDS PostgreSQL exige SSL por padrão**
+(pg_hba.conf só tem entradas `hostssl`), e o código gerado pelo Prompt 1
+não configurava SSL na conexão — funcionava no Postgres local (Compose),
+mas não no RDS. Corrigi `app/src/db.js` pra ligar SSL condicionalmente
+(`DB_SSL=true` só na AWS, via `infra/modules/ec2/user_data.sh.tpl`), sem
+quebrar o ambiente local. Depois de comitar/dar push, redeployei a API na
+EC2 via SSM (`git pull` + `docker build` + `docker run`) sem precisar
+recriar a instância inteira. Validado com CRUD completo via curl no IP
+público, gravando de fato no RDS. Evidência em
+`evidencias/aws-api-crud.txt`. **Isso é exatamente o tipo de coisa que a IA
+não previu e que só apareceu testando de verdade — reforça a importância de
+validar antes de confiar no código gerado.**
+
+---
+
 <!-- Próximos prompts entram abaixo, na ordem em que forem usados -->
