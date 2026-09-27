@@ -32,7 +32,16 @@ Gera:
 Contexto: É pra uma prova de DevOps, vou usar Docker e Terraform depois.
 ```
 
-**Resultado:** _(preencher depois de gerar: o que funcionou, o que precisou ajustar)_
+**Resultado:** Gerado `app/` com `package.json` (express + pg), `src/db.js` (pool de
+conexão + criação automática da tabela `reservas` no start), `src/index.js`
+(rotas CRUD completas), `.env.example` e `app/README.md` com instruções de
+teste. Validado localmente: subi um PostgreSQL descartável via Docker
+(`postgres:15-alpine`, porta 5433) só para teste, rodei `npm start` e testei
+todas as rotas com `curl` — POST (201), GET lista (200), GET por id (200),
+PUT (200), DELETE (200), GET após delete (404) e POST sem campo obrigatório
+(400). Tudo funcionou sem ajustes manuais no código gerado. Container de
+teste removido depois (`docker rm -f`) — não faz parte do projeto, só serviu
+pra validar a Fase 2 antes do Docker Compose oficial (Fase 4).
 
 ---
 
