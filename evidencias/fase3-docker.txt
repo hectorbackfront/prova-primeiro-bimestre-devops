@@ -1,0 +1,18 @@
+=== docker build -t reservas-api . ===
+(build completo com sucesso, imagem multi-stage node:20-alpine)
+
+=== docker ps (container rodando) ===
+CONTAINER ID   IMAGE          COMMAND                  CREATED          STATUS                    PORTS                                         NAMES
+77623e96fb56   reservas-api   "docker-entrypoint.s…"   32 seconds ago   Up 32 seconds (healthy)   0.0.0.0:3000->3000/tcp, [::]:3000->3000/tcp   reservas-api-test
+
+=== whoami dentro do container (usuario nao-root) ===
+appuser
+
+=== docker inspect - health status ===
+Health: healthy
+
+=== curl /health ===
+{"status":"ok"} [HTTP 200]
+
+=== curl POST /reservas ===
+{"id":2,"cliente":"Teste Docker","data":"2026-11-02T00:00:00.000Z","status":"pendente"} [HTTP 201]

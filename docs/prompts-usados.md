@@ -45,4 +45,40 @@ pra validar a Fase 2 antes do Docker Compose oficial (Fase 4).
 
 ---
 
+## Prompt 2 — Dockerfile Multi-Stage
+
+**Fase:** 3 (Docker)
+**Ferramenta:** Claude (Sonnet 5, via Claude Code)
+
+**Prompt usado:**
+```
+Gera um Dockerfile multi-stage pra essa API Node.js/Express:
+- Stage 1: Builder (npm install)
+- Stage 2: Runtime (usuário não-root, alpine recomendado)
+- Expo porta 3000
+- Health check: GET /health
+- .dockerignore também
+
+Requisitos:
+- Não rodar como root
+- NODE_ENV=production no runtime
+- EXPOSE 3000
+- CMD com node
+```
+
+**Resultado:** Gerado `app/Dockerfile` (builder `node:20-alpine` faz `npm install
+--omit=dev`, runtime `node:20-alpine` cria usuário `appuser` não-root via
+`addgroup`/`adduser`, copia só `node_modules` + `src` + `package.json` do
+builder) e `app/.dockerignore` (ignora `node_modules`, `.env`, `.git`, etc.).
+Validado com Docker real: `docker build -t reservas-api .` completou sem
+erro; subi um Postgres descartável + o container da API numa rede Docker
+dedicada; `docker exec reservas-api-test whoami` confirmou `appuser` (não
+root); `docker inspect` mostrou `Health: healthy`; testei `/health` e
+`POST /reservas` dentro do container rodando — ambos OK (200 e 201).
+Evidência salva em `evidencias/fase3-docker.txt`. Containers/rede de teste
+removidos depois (`docker rm -f`, `docker network rm`) — não fazem parte do
+projeto final, só validaram a Fase 3 antes do Docker Compose oficial.
+
+---
+
 <!-- Próximos prompts entram abaixo, na ordem em que forem usados -->
